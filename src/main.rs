@@ -1,9 +1,14 @@
+use anyhow::Error;
 use flate2::read::ZlibDecoder;
 use std::env;
 use std::fs;
 use std::io::prelude::*;
 
 fn main() {
+    git().unwrap();
+}
+
+fn git() -> Result<(), Error> {
     let args: Vec<String> = env::args().collect();
     match args[1].as_str() {
         "init" => {
@@ -19,11 +24,11 @@ fn main() {
             let blob_sha = args[3].clone();
             let dir_name = &blob_sha[0..2];
             let file_name = &blob_sha[2..];
-            let contents = fs::read(format!(".git/objects/{}/{}", dir_name, file_name)).unwrap();
+            let contents = fs::read(format!(".git/objects/{}/{}", dir_name, file_name))?;
 
             let mut z = ZlibDecoder::new(&contents[..]);
             let mut contents = String::new();
-            z.read_to_string(&mut contents).unwrap();
+            z.read_to_string(&mut contents)?;
 
             print!("{}", contents);
         }
@@ -31,5 +36,6 @@ fn main() {
         _ => {
             println!("unknown command: {}", args[1])
         }
-    }
+    };
+    Result::Ok(())
 }
