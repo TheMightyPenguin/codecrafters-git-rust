@@ -20,7 +20,6 @@ fn git() -> Result<(), Error> {
         }
 
         "cat-file" => {
-            // TODO: implement arg parsing lel
             let blob_sha = args[3].clone();
             let dir_name = &blob_sha[0..2];
             let file_name = &blob_sha[2..];
@@ -29,8 +28,18 @@ fn git() -> Result<(), Error> {
             let mut z = ZlibDecoder::new(&contents[..]);
             let mut contents = String::new();
             z.read_to_string(&mut contents)?;
+            let parts = contents.split('\0').collect::<Vec<_>>();
+            let object_type = parts[0].split(' ').collect::<Vec<_>>()[0];
+            let content = parts[1];
 
-            print!("{}", contents);
+            match (object_type, content) {
+                ("blob", content) => {
+                    print!("{}", content);
+                }
+                (_, _content) => {
+                    println!("unknown object type {}", object_type);
+                }
+            }
         }
 
         _ => {
